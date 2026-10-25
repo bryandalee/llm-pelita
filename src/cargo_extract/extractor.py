@@ -19,10 +19,11 @@ def muat_prompt(versi: str) -> str:
     return cocok[0].read_text(encoding="utf-8")
 
 
-def _system_dan_kunci(teks_chat: str, versi_prompt: str, model: str) -> tuple[str, str]:
+def _system_dan_kunci(teks_chat: str, versi_prompt: str, model: str, konteks: str = "") -> tuple[str, str]:
     # Skema juga ditaruh di prompt (anjuran dokumentasi Ollama): `format` hanya membatasi
     # bentuk JSON, sedangkan deskripsi kolom baru terbaca model kalau ada di teks.
-    system = muat_prompt(versi_prompt) + "\nSkema JSON:\n" + json.dumps(SKEMA, ensure_ascii=False)
+    system = muat_prompt(versi_prompt) + (f"\n{konteks}\n" if konteks else "")
+    system += "\nSkema JSON:\n" + json.dumps(SKEMA, ensure_ascii=False)
     return system, cache.kunci(versi_prompt, system, model, teks_chat)
 
 
@@ -32,8 +33,9 @@ def dari_cache(teks_chat: str, versi_prompt: str, model: str = config.MODEL_ID) 
     return EkstraksiLLM.model_validate_json(isi) if isi else None
 
 
-def ekstrak(teks_chat: str, versi_prompt: str, model: str = config.MODEL_ID) -> EkstraksiLLM:
-    system, k = _system_dan_kunci(teks_chat, versi_prompt, model)
+def ekstrak(teks_chat: str, versi_prompt: str, model: str = config.MODEL_ID, konteks: str = "") -> EkstraksiLLM:
+    """`konteks`: teks tambahan untuk prompt, mis. contoh dari riwayat admin (riwayat.py)."""
+    system, k = _system_dan_kunci(teks_chat, versi_prompt, model, konteks)
     isi = cache.ambil(k)
     if isi is None:
         res = ollama.Client(host=config.OLLAMA_HOST).chat(

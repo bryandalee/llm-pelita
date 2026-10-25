@@ -13,7 +13,8 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
 MODEL_ID = os.getenv("MODEL_ID", "qwen3.5:9b")
 # Prompt baku. v6 dibekukan sebelum test chat asli dibuat; v7 (v6 + tabel kategori Pelita) diuji
 # sekali di test dan lebih baik (25 Okt 2026). Eksperimen baru pakai versi prompt baru lewat --prompt,
-# dan sebaiknya diuji di chat test BARU, karena test sekarang sudah dipakai dua kali.
+# dan sebaiknya diuji di chat test BARU, karena test sekarang sudah dipakai beberapa kali
+# (v6, v7, eksperimen --riwayat yang tidak lebih baik; lihat README).
 PROMPT_BAKU = "v7"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or None
 
