@@ -1,0 +1,22 @@
+# Rahasia
+.env
+
+# Chat asli pelanggan (mentah maupun tersamarkan): tidak pernah di-commit
+data/raw/*
+!data/raw/BACA_SAYA.md
+data/privat/
+**/WhatsApp Chat*
+*.zip
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Cache respons model
+.cache/
+
+# Catatan kerja internal: memuat detail chat asli, nama, dan tarif. Ringkasan publiknya ada di README.
+KONTEKS_PROYEK.md

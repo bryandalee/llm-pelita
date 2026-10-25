@@ -1,0 +1,13 @@
+# Frasa penanda pesan template admin (quick reply WhatsApp Business Pelita).
+# Pesan ADMIN yang memuat salah satu frasa ini dibuang sebelum chat dikirim ke model
+# (python -m evaluasi.jalankan --bersihkan). Pricelist umum dikenali dari harganya, bukan dari sini.
+# Satu frasa per baris, tidak membedakan huruf besar/kecil. Jangan tulis harga atau data pribadi.
+terima kasih telah menghubungi Pelita Cargo
+Cara Kirim Barang ke Gudang Kami di China
+Kami menyediakan 2 pilihan pengiriman
+Harga yang tertera sudah ALL-IN
+Country/Region: China
+Contact before delivery
+送货前联系
+FORMULIR PENGIRIMAN
+Kami menyediakan layanan Jasa Order

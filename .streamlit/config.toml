@@ -1,0 +1,7 @@
+# Halaman tandai/label menampilkan chat asli: hanya bisa dibuka dari laptop ini.
+[server]
+address = "localhost"
+headless = true
+
+[browser]
+gatherUsageStats = false

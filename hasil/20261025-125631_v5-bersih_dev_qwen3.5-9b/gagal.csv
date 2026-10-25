@@ -1,0 +1,4 @@
+﻿id,kolom,status,label,prediksi
+sint_001,kategori_barang,terlewat,"""garmen""",null
+sint_002,berat_kg,salah,80.0,40.0
+sint_003,jenis_barang,salah,"""casing hp""","""case hp"""

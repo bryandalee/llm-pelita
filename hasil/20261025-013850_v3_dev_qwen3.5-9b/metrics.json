@@ -1,0 +1,93 @@
+{
+  "jumlah_chat": 4,
+  "chat_semua_benar": 2,
+  "per_kolom": {
+    "jenis_barang": {
+      "akurasi": 0.75,
+      "benar": 3,
+      "salah": 1,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "kategori_barang": {
+      "akurasi": 0.0,
+      "benar": 0,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 1,
+      "diabaikan": 3
+    },
+    "branded": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "jumlah_koli": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "berat_kg": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "grup_koli": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "cbm": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "kota_tujuan": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "jalur": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    },
+    "info_kurang": {
+      "akurasi": 1.0,
+      "benar": 4,
+      "salah": 0,
+      "halusinasi": 0,
+      "terlewat": 0,
+      "diabaikan": 0
+    }
+  },
+  "info_kurang": {
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "prompt": "v3",
+  "split": "dev",
+  "model": "qwen3.5:9b"
+}

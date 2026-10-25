@@ -1,0 +1,4 @@
+﻿id,kolom,status,label,prediksi
+sint_003,jenis_barang,salah,"""casing hp""","""phone cases"""
+sint_003,kategori_barang,halusinasi,null,"""umum"""
+sint_004,kota_tujuan,salah,"""Jakarta Barat""","""Jakarta"""
