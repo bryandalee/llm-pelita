@@ -54,7 +54,7 @@ Alur: ekspor WhatsApp → `scripts/impor_whatsapp.py` (dipotong per episode dan 
 
 | Kolom | Aturan |
 |---|---|
-| `jenis_barang` | nama singkat bahasa Indonesia, huruf kecil ("baju anak", "sparepart motor") |
+| `jenis_barang` | nama singkat, huruf kecil ("baju anak", "sparepart motor"). Kalau pelanggan memakai bahasa lain, tulis nama aslinya **dan** terjemahannya, dipisah `\|` ("steering wheel buttons \| tombol setir"); semua nama itu dianggap benar. Urutan kata tidak dinilai |
 | `kategori_barang` | kategori tarif laut menurut sifat barang, diisi juga untuk kiriman udara. Kalau ragu, `null` + tag `kategori_perlu_dicek` (kolom ini lalu tidak dinilai untuk chat itu) |
 | `branded` | keputusan tarif udara admin: 230rb/kg = `true`, 220rb/kg = `false` (boleh dari setelah titik potong, seperti kategori). Jika admin mengirim keduanya (pricelist), `null`, kecuali pelanggan sendiri menyebut merek. Tidak dinilai jika jenis barang kosong |
 | `jumlah_koli` | jumlah koli/ctn/dus/件/箱 seluruh kiriman. **Bukan** jumlah pcs |

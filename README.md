@@ -133,7 +133,7 @@ dibuat dari barang di chat-chat itu.
 | Ukuran (grup koli) | 91% | 91% |
 | Jalur | 91% | 91% |
 | Berat | 94% | 88% |
-| Jenis barang | 79% | 76% |
+| Jenis barang | 82% | 76% |
 | Branded (tarif udara) | 62% | 62% |
 | Kategori (tarif laut) | 42% (8/19) | **53% (10/19)** |
 | Info kurang (set persis sama) | 67% | 61% |
@@ -144,14 +144,16 @@ Cara membaca:
   8/14 → 10/14. Lima kesalahan lartas → "umum" dari v7 hilang. Gantinya, dua barang umum
   (aksesoris hamster, stiker) kini ditebak lartas ringan. Keduanya mendapat peringatan cek admin.
 - **Kolom lain praktis sama.** Selisih 1–2 chat masih dalam batas noise (lihat catatan docstring di atas).
-  Info dari pelanggan: 211/231 (91%) vs 208/231 (90%).
+  Info dari pelanggan: 212/231 (92%) vs 208/231 (90%).
 - **Kebocoran daftar diperiksa.** Tiga kata di daftar (mesin, socket, metal detector) ternyata juga
   barang di chat test. Tanpa ketiga kata itu, hasil v8 tetap sama (kategori 53%).
 - **Hasil putaran 1 bertahan di data baru:** v7 9/23 (39%) di test lama vs 12/33 (36%) di test baru.
 - **Kesalahan terbesar yang tersisa: `branded` kosong (10 chat).** Admin hampir selalu memberi tarif
   non-branded 220rb, tapi model mengisi kosong kalau merek tidak disebut.
 - Sebagian kesalahan "jenis barang" sebenarnya sinonim atau terjemahan ("tombol setir" vs label
-  "steering wheel buttons", "casing hp" vs "case hp"). Ini batas metrik pencocokan teks.
+  "steering wheel buttons", "casing hp" vs "case hp"). Sekarang metrik mengabaikan urutan kata, dan
+  label boleh memuat beberapa nama yang diterima (dipisah `|`). Aturan ini diterapkan sama ke semua
+  versi; angka putaran 1 tidak berubah.
 
 ## Keterbatasan
 

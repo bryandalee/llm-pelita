@@ -57,6 +57,11 @@ def _grup_cocok(label: list[GrupKoli], prediksi: list[GrupKoli]) -> bool:
     return True
 
 
+def _jenis_cocok(a: str, b: str) -> bool:
+    kata_a, kata_b = set(a.split()), set(b.split())
+    return a in b or b in a or kata_a <= kata_b or kata_b <= kata_a
+
+
 def _cocok(kolom: str, a, b) -> bool:
     match kolom:
         case "berat_kg":
@@ -64,8 +69,10 @@ def _cocok(kolom: str, a, b) -> bool:
         case "cbm":
             return abs(a - b) <= 0.02 * a
         case "jenis_barang":
-            a, b = a.casefold().strip(), b.casefold().strip()
-            return a in b or b in a
+            # Label boleh berisi beberapa nama yang diterima, dipisah "|" (mis. nama asli pelanggan dan
+            # terjemahannya). Cocok jika salah satu termuat di prediksi atau sebaliknya, urutan kata bebas.
+            b = b.casefold().strip()
+            return any(_jenis_cocok(alt.casefold().strip(), b) for alt in a.split("|") if alt.strip())
         case "kota_tujuan":
             return a.casefold() == b.casefold()
         case "grup_koli":

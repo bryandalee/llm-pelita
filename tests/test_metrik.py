@@ -35,6 +35,17 @@ def test_kolom_diabaikan_tidak_dihitung():
     assert m["chat_semua_benar"] == 2
 
 
+def test_jenis_barang_nama_lain_dan_urutan_kata():
+    def status(label, pred):
+        return bandingkan_kolom(LABEL.model_copy(update={"jenis_barang": label}),
+                                LABEL.model_copy(update={"jenis_barang": pred}))["jenis_barang"]
+    assert status("steering wheel buttons | tombol setir", "tombol setir") == "benar"
+    assert status("handphone socket", "socket handphone") == "benar"
+    assert status("baju", "baju anak") == "benar"
+    assert status("steering wheel buttons", "tombol setir") == "salah"
+    assert status("baju | kaos", "celana") == "salah"
+
+
 def test_kategori_tidak_dinilai_jika_jenis_barang_kosong():
     contoh = ContohChat(id="c1", pesan=[], meta=MetaChat(bahasa=["id"], sumber="sintetis"),
                         label=LABEL.model_copy(update={"jenis_barang": None}))

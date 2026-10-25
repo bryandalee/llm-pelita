@@ -114,7 +114,9 @@ with kanan:
                 ekstrak(teks_model, PROMPT_DRAFT)
             st.rerun()
 
-    jenis = st.text_input("Jenis barang", awal.jenis_barang or "", key=f"jenis_{k}").strip().lower() or None
+    jenis = st.text_input("Jenis barang", awal.jenis_barang or "", key=f"jenis_{k}",
+                          help="Nama lain yang juga benar dipisah |, mis. 'steering wheel buttons | tombol setir'"
+                          ).strip().lower() or None
     opsi_kategori = [None, *KategoriBarang]
     kategori = st.selectbox(
         "Kategori (keputusan admin, boleh dari setelah titik potong)", opsi_kategori,
