@@ -40,8 +40,11 @@ def jawaban_harga_khusus(teks: str) -> bool:
 
 def saran_titik_potong(pesan: list[Pesan]) -> int | None:
     """Indeks pesan admin pertama yang menjawab harga khusus untuk kiriman ini."""
+    # Impor di sini karena bersihkan memakai jawaban_harga_khusus dari modul ini.
+    # Template (mis. biaya Jasa Order) memuat nominal tapi sama untuk semua pelanggan.
+    from .bersihkan import template_admin
     for i, p in enumerate(pesan):
-        if p.pengirim == "admin" and jawaban_harga_khusus(p.teks):
+        if p.pengirim == "admin" and not template_admin(p) and jawaban_harga_khusus(p.teks):
             return i
     return None
 

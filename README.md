@@ -41,13 +41,16 @@ kurang.
 
 ## Data dan cara melabel
 
-- **Sumber:** 26 ekspor WhatsApp, dipotong menjadi 30 episode percakapan. Satu contoh data = satu
-  permintaan harga.
+- **Sumber:** 57 ekspor WhatsApp, dipotong menjadi 70 episode percakapan; 61 di antaranya permintaan
+  harga yang dilabel. Satu contoh data = satu permintaan harga.
 - **Titik potong:** input berhenti tepat sebelum admin memberi harga untuk barang itu. Tanpa ini,
   model bisa "menyontek" jawaban admin (hitungan CBM, kategori). Label hanya berisi apa yang
   dikatakan pelanggan sebelum titik potong. Kategori dan branded adalah keputusan tarif admin.
-- **Split:** 5 episode dev (dipakai selama memperbaiki prompt), 23 episode test (dilabel setelah
-  prompt dibekukan), dan 4 chat sintetis untuk kasus Mandarin/Inggris.
+- **Split (dua putaran):**
+  - Putaran 1: 5 episode dev untuk memperbaiki prompt v3–v6, lalu 23 episode test.
+  - Putaran 2: ke-28 episode itu menjadi dev untuk v8, lalu 33 episode test dari ekspor baru. Ekspor
+    baru ini dibuka setelah v8 dan daftar kategori dibekukan.
+  - Ditambah 4 chat sintetis untuk kasus Mandarin/Inggris.
 - **Alat:** `app/tandai.py` untuk menandai jenis episode dan titik potong (dengan saran otomatis),
   dan `app/label.py` untuk melabel dengan isian awal yang dikoreksi admin. Aturannya ada di
   [`docs/panduan_label.md`](docs/panduan_label.md).
@@ -108,13 +111,56 @@ Hasilnya **tidak lebih baik**, jadi tidak dipakai sebagai bawaan (`--riwayat` te
 
 Perlu diukur ulang setelah data berlabel bertambah.
 
+## v8 + daftar kategori admin
+
+Perbaikan kategori dilakukan lewat aturan, bukan contoh:
+- **Prompt v8**: "umum" dipersempit (barang sederhana tanpa mesin/listrik); lartas ringan jadi bawaan.
+  Model lalu bias ke arah sebaliknya (barang umum ditebak lartas ringan).
+- **Daftar kata admin** ([`data/referensi/kategori_kata.csv`](data/referensi/kategori_kata.csv)) dibaca
+  **kode**, bukan model. Barang yang ada di daftar memakai kategori admin. Barang di luar daftar memakai
+  tebakan model dan diberi peringatan `kategori_perlu_dicek`. Admin bisa terus menambah daftar ini.
+
+Di 28 chat lama (dev), kategori naik dari 35% ke 70%. Angka ini terlalu optimis, karena daftar sebagian
+dibuat dari barang di chat-chat itu.
+
+### Test baru: 33 chat dari ekspor baru (dibuka setelah v8 dibekukan)
+
+| Kolom | v7 (tanpa daftar) | v8 + daftar |
+|---|---|---|
+| Jumlah koli | 94% | 97% |
+| Kota tujuan | 97% | 97% |
+| CBM | 94% | 91% |
+| Ukuran (grup koli) | 91% | 91% |
+| Jalur | 91% | 91% |
+| Berat | 94% | 88% |
+| Jenis barang | 79% | 76% |
+| Branded (tarif udara) | 62% | 62% |
+| Kategori (tarif laut) | 42% (8/19) | **53% (10/19)** |
+| Info kurang (set persis sama) | 67% | 61% |
+| **Chat benar di semua kolom** | **12/33** | **12/33** |
+
+Cara membaca:
+- **Kategori membaik** (+2 dari 19 chat). Kalau hanya dihitung chat yang tarif lautnya diputuskan admin:
+  8/14 → 10/14. Lima kesalahan lartas → "umum" dari v7 hilang. Gantinya, dua barang umum
+  (aksesoris hamster, stiker) kini ditebak lartas ringan. Keduanya mendapat peringatan cek admin.
+- **Kolom lain praktis sama.** Selisih 1–2 chat masih dalam batas noise (lihat catatan docstring di atas).
+  Info dari pelanggan: 211/231 (91%) vs 208/231 (90%).
+- **Kebocoran daftar diperiksa.** Tiga kata di daftar (mesin, socket, metal detector) ternyata juga
+  barang di chat test. Tanpa ketiga kata itu, hasil v8 tetap sama (kategori 53%).
+- **Hasil putaran 1 bertahan di data baru:** v7 9/23 (39%) di test lama vs 12/33 (36%) di test baru.
+- **Kesalahan terbesar yang tersisa: `branded` kosong (10 chat).** Admin hampir selalu memberi tarif
+  non-branded 220rb, tapi model mengisi kosong kalau merek tidak disebut.
+- Sebagian kesalahan "jenis barang" sebenarnya sinonim atau terjemahan ("tombol setir" vs label
+  "steering wheel buttons", "casing hp" vs "case hp"). Ini batas metrik pencocokan teks.
+
 ## Keterbatasan
 
-- Test hanya 23 chat dan sudah dipakai beberapa kali (v6, v7, eksperimen retrieval). Satu chat = ±4%.
+- Test kecil: 23 chat (putaran 1, sudah dipakai beberapa kali) dan 33 chat (putaran 2, dipakai sekali
+  untuk v7 vs v8). Kategori dinilai di 19 chat, jadi satu chat = ±5%.
 - Semua chat asli berbahasa **Indonesia**. Kemampuan Mandarin/Inggris baru diuji dengan data
   sintetis.
 - Tahap 1 hanya teks. Info yang hanya ada di foto (jenis barang, packing list) belum dibaca.
-- Kategori lartas masih lemah (lihat eksperimen retrieval di atas).
+- Kategori untuk barang di luar daftar admin masih tebakan model; karena itu selalu ditandai untuk dicek.
 
 ## Menjalankan
 
@@ -147,14 +193,14 @@ python -m evaluasi.bandingkan <folder_run_a> <folder_run_b>
 | Folder | Isi |
 |---|---|
 | `src/cargo_extract/` | skema, pembaca WhatsApp, penyamar, buang template, extractor, validator, pertanyaan balik, pipeline |
-| `prompts/` | versi prompt v1–v7 (baku: v7) |
+| `prompts/` | versi prompt v1–v8 (baku: v8) |
 | `evaluasi/` | menjalankan evaluasi, metrik per kolom, membandingkan run |
 | `app/` | demo, halaman tandai, halaman label |
 | `data/chats/` | chat sintetis berlabel |
-| `data/referensi/` | alias kota, frasa template admin, kategori tarif (tanpa harga) |
+| `data/referensi/` | alias kota, frasa template admin, kategori tarif (tanpa harga), daftar kata kategori admin |
 | `data/raw/`, `data/privat/` | chat asli dan turunannya, **tidak di-commit** |
 | `docs/` | panduan label |
-| `tests/` | 58 tes (tanpa memanggil model) |
+| `tests/` | 69 tes (tanpa memanggil model) |
 
 Riwayat keputusan lengkap disimpan di catatan kerja internal (`KONTEKS_PROYEK.md`, tidak
 dipublikasikan karena memuat detail chat asli).

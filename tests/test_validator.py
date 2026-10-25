@@ -25,7 +25,7 @@ def kode(pesanan):
 
 def test_berat_per_koli_dan_satuan_diasumsikan():
     # sint_001: 4 ctn, 每箱 60*40*35, 15公斤
-    p = normalisasi(raw(jenis_barang="Baju anak", grup_koli=[grup(4, 60, 40, 35, berat=15)]))
+    p = normalisasi(raw(jenis_barang="Baju anak", kategori_barang="garmen", grup_koli=[grup(4, 60, 40, 35, berat=15)]))
     assert (p.jumlah_koli, p.berat_kg, p.cbm, p.cbm_sumber) == (4, 60, 0.336, "dihitung")
     assert p.jenis_barang == "baju anak"
     assert kode(p) == {KodePeringatan.SATUAN_DIASUMSIKAN}
@@ -43,7 +43,7 @@ def test_jin_dan_cbm_disebut_yang_cocok():
 def test_meter_dan_alias_kota():
     # sint_004: 2 dus 0.6 x 0.4 x 0.4 m, totalnya 35 kilo, ke jakbar, via laut
     p = normalisasi(raw(grup_koli=[grup(2, 0.6, 0.4, 0.4, "m")], berat_total={"nilai": 35, "satuan": "kg"},
-                        kota_tujuan="jakbar", jalur="laut"))
+                        kota_tujuan="jakbar", jalur="laut", jenis_barang="mainan"))
     assert p.grup_koli[0].dimensi_cm == (60, 40, 40)
     assert (p.cbm, p.kota_tujuan, p.info_kurang, p.peringatan) == (0.192, "Jakarta Barat", [], [])
 
@@ -91,6 +91,23 @@ def test_grup_yang_semuanya_kosong_dibuang():
     p = normalisasi(raw(grup_koli=[grup(None)], cbm_disebut=0.1))
     assert p.grup_koli == []
     assert (p.cbm, p.cbm_sumber) == (0.1, "disebut")
+
+
+def test_kategori_dari_daftar_admin_mengalahkan_tebakan_model():
+    p = normalisasi(raw(jenis_barang="Sandal jepit", kategori_barang="lartas_ringan"))
+    assert p.kategori_barang == "umum"
+    assert KodePeringatan.KATEGORI_PERLU_DICEK not in kode(p)
+    # kata terpanjang menang; batas kata ("aki" tidak cocok di "kaki")
+    assert normalisasi(raw(jenis_barang="kaos kaki")).kategori_barang == "semi_garmen"
+    assert normalisasi(raw(jenis_barang="tas kain")).kategori_barang == "semi_garmen"
+    assert normalisasi(raw(jenis_barang="aki motor")).kategori_barang == "lartas_berat"
+
+
+def test_barang_di_luar_daftar_pakai_tebakan_model_dan_ditandai():
+    p = normalisasi(raw(jenis_barang="jam dinding", kategori_barang="umum"))
+    assert p.kategori_barang == "umum"
+    assert KodePeringatan.KATEGORI_PERLU_DICEK in kode(p)
+    assert KodePeringatan.KATEGORI_PERLU_DICEK not in kode(normalisasi(raw(jenis_barang=None)))
 
 
 def test_chat_kosong_semua_kurang():

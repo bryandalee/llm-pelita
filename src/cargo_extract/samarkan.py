@@ -46,6 +46,8 @@ POLA_JALAN = re.compile(
 # Di dalam blok alamat (setelah "Alamat ...:") cukup ada kata jalan atau nomor rumah.
 POLA_JALAN_BLOK = re.compile(POLA_JALAN.pattern + r"|\bjalan\b|\bno\.?\s*\d", re.IGNORECASE)
 POLA_KODEPOS = re.compile(r"\b\d{5}\b")
+# Di luar blok alamat, kode pos hanya disamarkan kalau disebut ("kode pos 12345"), supaya harga aman.
+POLA_KODEPOS_DISEBUT = re.compile(r"(?P<label>kode\s*pos\s*:?\s*)\d{5}\b", re.IGNORECASE)
 KATA_BUKAN_MARKING = {"BY", "SEA", "AIR", "LAUT", "UDARA", "VIA"}
 
 
@@ -101,6 +103,7 @@ class Penyamar:
         teks = POLA_WECHAT.sub(lambda m: m["label"] + self._palsu(m["nilai"], "WECHAT"), teks)
         teks = POLA_MARGA_ZH.sub("某", teks)
         teks = POLA_DOKUMEN.sub(lambda m: m["label"] + self._palsu(m["nilai"], "DOK"), teks)
+        teks = POLA_KODEPOS_DISEBUT.sub(lambda m: m["label"] + "[KODEPOS]", teks)
         teks = self._alamat(teks)
         for kontak, pola in self.pola_marking:
             teks = pola.sub(lambda m: self._palsu(kontak, "MARKING"), teks)

@@ -24,6 +24,13 @@ def test_pricelist_umum_bukan_titik_potong():
     assert saran_titik_potong(p) == 3
 
 
+def test_template_jasa_order_bukan_titik_potong():
+    jasa_order = ("Kami juga menyediakan layanan *Jasa Order*. Rincian ketentuan biaya admin (charge):\n"
+                  "Total Belanja < Rp 2.000.000: Charge Rp 150.000")
+    p = pesan(("pelanggan", "mau order mesin"), ("admin", jasa_order), ("admin", "mesin 2 cbm x 7 jt = 14 jt"))
+    assert saran_titik_potong(p) == 2
+
+
 def test_jenis_pesan_harga():
     # Pricelist yang sudah dipersempit ke tarif barang pelanggan = jawaban khusus.
     assert jawaban_harga_khusus("VIA UDARA\nBranded - 230rb/kg\nnon-Branded - 220rb/kg\nVIA LAUT\n10.3 jt / cbm")

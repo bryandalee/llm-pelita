@@ -15,7 +15,10 @@ MODEL_ID = os.getenv("MODEL_ID", "qwen3.5:9b")
 # sekali di test dan lebih baik (25 Okt 2026). Eksperimen baru pakai versi prompt baru lewat --prompt,
 # dan sebaiknya diuji di chat test BARU, karena test sekarang sudah dipakai beberapa kali
 # (v6, v7, eksperimen --riwayat yang tidak lebih baik; lihat README).
-PROMPT_BAKU = "v7"
+# v8 + data/referensi/kategori_kata.csv dibekukan 25 Okt 2026 malam; 28 chat lama sekarang jadi dev.
+# Diuji sekali di 33 chat test baru (ekspor_27..57, 26 Okt 2026): kategori 42% → 53%, kolom lain setara
+# v7 (lihat README). Perubahan berikutnya butuh chat test baru lagi.
+PROMPT_BAKU = "v8"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or None
 
 PROMPTS_DIR = ROOT / "prompts"

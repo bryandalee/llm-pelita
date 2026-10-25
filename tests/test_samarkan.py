@@ -61,6 +61,13 @@ def test_kata_jalan_sebagai_kata_kerja_tidak_disamarkan():
     assert teks[2] == "Alamat:\n[ALAMAT JALAN]\nKota Medan"
 
 
+def test_kode_pos_yang_disebut_di_luar_blok_alamat():
+    pesan = [Pesan(pengirim="pelanggan", teks="Saya di Kota Malang,\nKec Klojen, kode pos 65111\nongkir 12500 ya")]
+    teks = samarkan_pesan(pesan, nama_kontak=set())[0][0].teks
+    assert "65111" not in teks and "kode pos [KODEPOS]" in teks
+    assert "12500" in teks                      # angka 5 digit lain (harga) tidak disentuh
+
+
 def test_pengganti_konsisten():
     teks, pengganti = samarkan()
     rina = pengganti["rina"]

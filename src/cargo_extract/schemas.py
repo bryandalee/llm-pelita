@@ -65,6 +65,7 @@ class KodePeringatan(str, Enum):
     BERAT_TIDAK_KONSISTEN = "berat_tidak_konsisten"  # total != per_koli x jumlah
     DI_BAWAH_MINIMUM = "di_bawah_minimum"            # laut < 0,1 CBM, udara < 3 kg
     KOTA_TIDAK_DIKENAL = "kota_tidak_dikenal"        # tidak ada di data/referensi/kota.csv
+    KATEGORI_PERLU_DICEK = "kategori_perlu_dicek"    # tebakan "umum"/kosong; sering ternyata lartas
 
 
 # ---------- Lapis 1: output LLM (apa yang DIKATAKAN, tanpa hitung/konversi) ----------

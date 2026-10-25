@@ -14,6 +14,7 @@ Langkah:
 from __future__ import annotations
 
 import csv
+import re
 from functools import lru_cache
 
 from . import config
@@ -26,6 +27,7 @@ from .schemas import (
     GrupKoli,
     InfoKurang,
     Jalur,
+    KategoriBarang,
     KodePeringatan,
     Peringatan,
     Pesanan,
@@ -47,6 +49,19 @@ MIN_KG_UDARA = 3
 def alias_kota() -> dict[str, str]:
     with (config.DATA_DIR / "referensi" / "kota.csv").open(encoding="utf-8") as f:
         return {row["alias"].strip().casefold(): row["nama_baku"] for row in csv.DictReader(f)}
+
+
+@lru_cache
+def daftar_kategori() -> list[tuple[re.Pattern, KategoriBarang]]:
+    """Keputusan admin (data/referensi/kategori_kata.csv), kata terpanjang dicoba lebih dulu."""
+    with (config.DATA_DIR / "referensi" / "kategori_kata.csv").open(encoding="utf-8") as f:
+        baris = [(row["kata"].strip().casefold(), KategoriBarang(row["kategori"])) for row in csv.DictReader(f)]
+    return [(re.compile(rf"\b{re.escape(k)}\b"), kat) for k, kat in sorted(baris, key=lambda b: -len(b[0]))]
+
+
+def kategori_dari_daftar(jenis: str) -> KategoriBarang | None:
+    teks = jenis.casefold()
+    return next((kat for pola, kat in daftar_kategori() if pola.search(teks)), None)
 
 
 def _beda(a: float, b: float) -> float:
@@ -179,9 +194,21 @@ def normalisasi(raw: EkstraksiLLM) -> Pesanan:
     elif raw.jalur == Jalur.UDARA and raw.branded is None:
         info_kurang.append(InfoKurang.BRANDED)
 
+    # 8. Kategori adalah keputusan admin. Barang yang ada di daftar admin memakai kategori daftar;
+    #    selain itu tebakan model dipakai sebagai saran dan ditandai untuk dicek.
+    kategori = raw.kategori_barang
+    if jenis:
+        dari_daftar = kategori_dari_daftar(jenis)
+        if dari_daftar:
+            kategori = dari_daftar
+        else:
+            tebakan = kategori.value if kategori else "belum bisa ditebak"
+            peringatkan(KodePeringatan.KATEGORI_PERLU_DICEK,
+                        f"'{jenis}' belum ada di daftar admin; tebakan model: {tebakan}")
+
     return Pesanan(
         jenis_barang=jenis,
-        kategori_barang=raw.kategori_barang,
+        kategori_barang=kategori,
         branded=raw.branded,
         jumlah_koli=jumlah_koli,
         berat_kg=berat_kg,

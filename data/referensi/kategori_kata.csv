@@ -1,0 +1,62 @@
+kata,kategori
+tas,tas
+dompet,tas
+koper,tas
+ransel,tas
+baju,garmen
+kaos,garmen
+kemeja,garmen
+celana,garmen
+jaket,garmen
+dress,garmen
+rok,garmen
+pakaian dalam,garmen
+kaos kaki,semi_garmen
+sarung tangan,semi_garmen
+topi,semi_garmen
+hijab,semi_garmen
+jilbab,semi_garmen
+dasi,semi_garmen
+syal,semi_garmen
+sapu tangan,semi_garmen
+tas kain,semi_garmen
+dompet kain,semi_garmen
+sabuk kain,semi_garmen
+kain,semi_garmen
+benang,semi_garmen
+ritsleting,semi_garmen
+sepatu,umum
+sandal,umum
+aksesori rambut,umum
+aksesoris rambut,umum
+sisir,umum
+casing hp,umum
+case hp,umum
+filter air,umum
+buku,umum
+stiker,umum
+seed dressing,umum
+makanan,lartas_ringan
+snack,lartas_ringan
+mainan,lartas_ringan
+toy,lartas_ringan
+mesin,lartas_ringan
+lampu,lartas_ringan
+socket,lartas_ringan
+metal detector,lartas_ringan
+pilates,lartas_ringan
+alat gym,lartas_ringan
+alat olahraga,lartas_ringan
+tiang karbon,lartas_ringan
+pagar anak,lartas_ringan
+printer,lartas_ringan
+aksesori mobil,lartas_ringan
+aksesoris mobil,lartas_ringan
+botol plastik,lartas_ringan
+alat kesehatan,lartas_berat
+alkes,lartas_berat
+truk,lartas_berat
+vinyl,lartas_berat
+vynil,lartas_berat
+aki,lartas_berat
+shield,lartas_berat
