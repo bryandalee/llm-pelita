@@ -59,3 +59,13 @@ def test_halaman_demo(monkeypatch):
     assert not at.exception
     teks_kode = " ".join(c.value for c in at.code)
     assert "berat totalnya" in teks_kode and "via laut atau udara" in teks_kode
+
+    # Salinan mentah dari WhatsApp Desktop: admin ditebak dari pesan template, lalu dipisah otomatis.
+    at.text_area(key="chat").set_value(
+        "[09:15, 20/10/2026] Toko Maju: kak mau kirim sepatu 3 dus 60x40x40 ke sby\n"
+        "[09:20, 20/10/2026] Pelita Cargo: Halo, terima kasih telah menghubungi Pelita Cargo. Mohon isi form.\n"
+    ).run(timeout=30)
+    assert not at.exception
+    assert not at.code                                   # hasil chat sebelumnya tidak ditampilkan lagi
+    assert at.multiselect(key="admin_tempel").value == ["Pelita Cargo"]
+    assert "1 pelanggan, 1 admin" in at.expander[0].label

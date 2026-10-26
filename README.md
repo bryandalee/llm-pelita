@@ -195,7 +195,9 @@ Cara membaca:
   untuk v7 vs v8). Kategori dinilai di 19 chat, jadi satu chat = ±5%.
 - Semua chat asli berbahasa **Indonesia**. Kemampuan Mandarin/Inggris baru diuji dengan data
   sintetis.
-- Foto baru diuji di 17 chat. Packing list (±2) belum diukur, dan demo belum menerima unggahan foto.
+- Foto baru diuji di 17 chat. Packing list (±2) belum diukur.
+- Belum tersambung langsung ke WhatsApp; chat masih disalin atau diekspor manual. Sambungan otomatis
+  butuh WhatsApp Business Platform (API resmi Meta), dan itu keputusan bisnis.
 - Kategori untuk barang di luar daftar admin masih tebakan model; karena itu selalu ditandai untuk dicek.
 
 ## Menjalankan
@@ -213,6 +215,15 @@ pytest
 streamlit run app/streamlit_app.py           # demo, contoh chat sintetis di sidebar
 python -m evaluasi.jalankan --split dev      # evaluasi pada chat sintetis
 ```
+
+Memakai demo:
+- **Tempel chat apa adanya.** Pilih pesan di WhatsApp Desktop/Web, salin, lalu tempel. Sistem mengenali
+  format `[jam, tanggal] Nama: teks`, menebak pengirim admin (dari "You"/"Anda" atau pesan template
+  admin), dan memisahkan pesan admin dan pelanggan sendiri. Tebakan admin bisa dikoreksi sekali.
+- **Atau unggah file ekspor** chat (.txt, atau .zip berikut fotonya). Chat dipotong per percakapan
+  (jeda 7 hari), dan yang terakhir dipilih otomatis.
+- **Foto barang** bisa diunggah tambahan. Foto dibaca bila "Baca foto barang" menyala (±30–40 detik per foto).
+- Semua berjalan di laptop. File unggahan hanya disimpan di folder sementara.
 
 Alur chat asli (semua hasilnya di `data/privat/`, tidak di-commit):
 

@@ -1,7 +1,7 @@
 # Semua isi chat di sini palsu.
 from datetime import datetime
 
-from cargo_extract.whatsapp import baca_ekspor, potong_episode
+from cargo_extract.whatsapp import baca_ekspor, baca_teks, pengirim, potong_episode, tebak_admin
 
 CONTOH_IPHONE = """Messages and calls are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them.
 [9/7/26, 4:43:45 PM] Toko Maju: Halo
@@ -56,3 +56,28 @@ def test_pesan_sistem_dan_penanda_edit_dibuang(tmp_path):
 def test_potong_episode_setelah_jeda_seminggu(tmp_path):
     episode = potong_episode(baca_ekspor(tulis(tmp_path, CONTOH_IPHONE)).pesan)
     assert [len(e) for e in episode] == [4, 1]
+
+
+# Format saat beberapa pesan disalin dari WhatsApp Desktop/Web (jam dulu, lalu tanggal).
+CONTOH_SALINAN = """[09:15, 20/10/2026] Toko Maju: halo kak mau kirim sepatu
+3 dus 60x40x40
+[09:15, 20/10/2026] Toko Maju: Photo
+ini barangnya
+[09:20, 20/10/2026] Pelita Cargo: Halo, terima kasih telah menghubungi Pelita Cargo. Mohon isi form.
+[13:05, 21/10/2026] Toko Maju: ke surabaya ya
+"""
+
+
+def test_salinan_desktop_dipisah_otomatis():
+    hasil = baca_teks(CONTOH_SALINAN, nama_admin={"Pelita Cargo"})
+    assert [p.pengirim for p in hasil.pesan] == ["pelanggan", "pelanggan", "admin", "pelanggan"]
+    assert hasil.pesan[0].teks == "halo kak mau kirim sepatu\n3 dus 60x40x40"
+    assert hasil.pesan[1].teks == "[foto]\nini barangnya"
+    assert hasil.pesan[1].lampiran[0].jenis == "foto" and hasil.pesan[1].lampiran[0].file is None
+    assert hasil.pesan[3].waktu == datetime(2026, 10, 21, 13, 5)
+
+
+def test_pengirim_dan_tebak_admin_dari_template():
+    assert pengirim(CONTOH_SALINAN) == ["Toko Maju", "Pelita Cargo"]
+    assert tebak_admin(CONTOH_SALINAN, ("terima kasih telah menghubungi pelita cargo",)) == {"Pelita Cargo"}
+    assert tebak_admin(CONTOH_SALINAN) == set()
