@@ -13,6 +13,10 @@ chat ──► buang template ──► LLM lokal ──► EkstraksiLLM ──�
 Contoh: `一共5件，每件 50*50*40，总重 160斤，大概0.5方，到泗水` → 5 koli, 50×50×40 cm, 80 kg, 0,5 CBM,
 Surabaya, lalu pertanyaan balik dalam bahasa pelanggan: `走海运还是空运？`
 
+![Demo: tempel chat WhatsApp dan foto barang, lalu muncul data pesanan dan pertanyaan balik](docs/demo.gif)
+
+*Demo lokal dengan chat dan gambar sintetis. Waktu tunggu model (±1–3 menit di CPU laptop) dipercepat.*
+
 ## Masalahnya
 
 Admin menerima ±20 pertanyaan harga per minggu. Info pelanggan pendek, tersebar di beberapa pesan,
