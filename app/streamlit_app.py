@@ -19,6 +19,8 @@ from cargo_extract import config
 from cargo_extract.bersihkan import frasa_template
 from cargo_extract.dataset import format_chat, muat_chats, parse_teks_chat
 from cargo_extract.foto import baca_foto, path_foto
+from cargo_extract.harga import estimasi_harga
+from cargo_extract.pertanyaan import rupiah
 from cargo_extract.pipeline import proses
 from cargo_extract.schemas import Lampiran, Pesan
 from cargo_extract.whatsapp import baca_teks, pengirim, potong_episode, tebak_admin
@@ -152,11 +154,22 @@ if "hasil" in st.session_state and st.session_state.get("hasil_untuk") == input_
             if path.exists():
                 st.image(str(path), caption=f"Foto terbaca: {isi}", width=220)
     with kanan:
-        st.subheader("Pertanyaan balik")
+        st.subheader("Estimasi harga")
+        estimasi = estimasi_harga(pesanan)
+        if not estimasi:
+            st.caption("Belum bisa dihitung (butuh CBM/ukuran + kategori untuk laut, atau berat untuk udara).")
+        for e in estimasi:
+            nama = f"{'Laut' if e.satuan == 'cbm' else 'Udara'} · {e.golongan.replace('_', '-')}"
+            st.metric(nama, rupiah(e.total), help=f"{e.jumlah:g} {e.satuan} × {rupiah(e.tarif)}")
+            for c in e.catatan:
+                st.caption(c)
+            if e.perlu_cek:
+                st.warning("Kategori/branded masih tebakan, cek dulu sebelum dikirim.")
+        st.subheader("Draf balasan")
         if pesanan.pertanyaan_balik:
             st.code(pesanan.pertanyaan_balik, language=None, wrap_lines=True)
         else:
-            st.success("Info lengkap, siap dihitung ongkirnya.")
+            st.success("Info lengkap.")
         if pesanan.peringatan:
             st.subheader("Peringatan validator")
             for p in pesanan.peringatan:

@@ -69,6 +69,34 @@ def _beda(a: float, b: float) -> float:
     return abs(a - b) / a
 
 
+def aturan_info_kurang(jenis: str | None, berat_kg: float | None, ada_ukuran: bool, kota: str | None,
+                       jalur: Jalur | None, branded: bool | None) -> list[InfoKurang]:
+    """Info yang perlu ditanyakan supaya admin bisa memberi harga (aturan admin Pelita):
+    - jumlah koli tidak pernah ditanyakan: ukuran/berat total dianggap 1 koli, kecuali pelanggan
+      sendiri menyebut ukuran per box dan jumlah box;
+    - udara dihitung dari berat (+ branded), laut dari CBM/ukuran;
+    - jalur belum disebut: tanyakan jalur, plus berat/ukuran hanya jika dua-duanya belum ada.
+    Dipakai validator (prediksi) dan label.info_kurang_dari_label (label), jadi selalu sama.
+    """
+    kurang = []
+    if jenis is None:
+        kurang.append(InfoKurang.JENIS_BARANG)
+    if jalur is None:
+        kurang.append(InfoKurang.JALUR)
+        if berat_kg is None and not ada_ukuran:
+            kurang += [InfoKurang.BERAT, InfoKurang.DIMENSI_ATAU_CBM]
+    elif jalur == Jalur.UDARA:
+        if berat_kg is None:
+            kurang.append(InfoKurang.BERAT)
+        if branded is None:
+            kurang.append(InfoKurang.BRANDED)
+    elif not ada_ukuran:
+        kurang.append(InfoKurang.DIMENSI_ATAU_CBM)
+    if kota is None:
+        kurang.append(InfoKurang.KOTA_TUJUAN)
+    return kurang
+
+
 def _fmt(sisi: tuple[float, ...]) -> str:
     return "x".join(f"{s:g}" for s in sisi)
 
@@ -178,21 +206,8 @@ def normalisasi(raw: EkstraksiLLM) -> Pesanan:
 
     # 7. Info yang kurang.
     jenis = raw.jenis_barang.strip().lower() if raw.jenis_barang and raw.jenis_barang.strip() else None
-    info_kurang = []
-    if jenis is None:
-        info_kurang.append(InfoKurang.JENIS_BARANG)
-    if jumlah_koli is None:
-        info_kurang.append(InfoKurang.JUMLAH_KOLI)
-    if berat_kg is None:
-        info_kurang.append(InfoKurang.BERAT)
-    if not any(g.dimensi_cm for g in grup) and cbm_disebut is None:
-        info_kurang.append(InfoKurang.DIMENSI_ATAU_CBM)
-    if kota is None:
-        info_kurang.append(InfoKurang.KOTA_TUJUAN)
-    if raw.jalur is None:
-        info_kurang.append(InfoKurang.JALUR)
-    elif raw.jalur == Jalur.UDARA and raw.branded is None:
-        info_kurang.append(InfoKurang.BRANDED)
+    ada_ukuran = any(g.dimensi_cm for g in grup) or cbm_disebut is not None
+    info_kurang = aturan_info_kurang(jenis, berat_kg, ada_ukuran, kota, raw.jalur, raw.branded)
 
     # 8. Kategori adalah keputusan admin. Barang yang ada di daftar admin memakai kategori daftar;
     #    selain itu tebakan model dipakai sebagai saran dan ditandai untuk dicek.

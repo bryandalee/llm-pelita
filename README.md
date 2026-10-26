@@ -140,8 +140,13 @@ dibuat dari barang di chat-chat itu.
 | Jenis barang | 82% | 76% |
 | Branded (tarif udara) | 62% | 62% |
 | Kategori (tarif laut) | 42% (8/19) | **53% (10/19)** |
-| Info kurang (set persis sama) | 67% | 61% |
+| Info kurang (set persis sama, aturan baru*) | 76% | 70% |
 | **Chat benar di semua kolom** | **12/33** | **12/33** |
+
+\* Sejak 27 Okt 2026, "info kurang" mengikuti cara kerja admin: koli tidak pernah ditanyakan, udara
+butuh berat, laut butuh ukuran/CBM (lihat [panduan label](docs/panduan_label.md)). Label dan prediksi
+dihitung dengan aturan yang sama. Dengan aturan lama angkanya 67% dan 61%; tabel putaran 1 dan
+eksperimen lain di README ini masih memakai aturan lama.
 
 Cara membaca:
 - **Kategori membaik** (+2 dari 19 chat). Kalau hanya dihitung chat yang tarif lautnya diputuskan admin:
@@ -158,6 +163,31 @@ Cara membaca:
   "steering wheel buttons", "casing hp" vs "case hp"). Sekarang metrik mengabaikan urutan kata, dan
   label boleh memuat beberapa nama yang diterima (dipisah `|`). Aturan ini diterapkan sama ke semua
   versi; angka putaran 1 tidak berubah.
+
+## Estimasi harga dan draf balasan
+
+Setelah data pesanan terbaca, kode ([`harga.py`](src/cargo_extract/harga.py)) menghitung estimasi
+ongkir dari pricelist di [`data/referensi/tarif.csv`](data/referensi/tarif.csv). Model tidak ikut
+menghitung. Aturannya dari admin Pelita:
+- **Laut:** CBM × tarif kategori, minimum 0,1 CBM. Ukuran tanpa jumlah koli dianggap 1 koli.
+- **Udara:** berat × tarif branded/non-branded, minimum 3 kg. Ukuran dipakai untuk cek berat volume
+  (p × l × t ÷ 6000). Jika lebih besar dari berat, selisihnya ditagih ½ tarif per kg.
+- **Pengiriman lokal:** harga all-in sampai Jakarta. Antar gratis hanya di Jakarta untuk ≥ 1 CBM; selain itu
+  dikirim lewat ekspedisi lokal dengan biaya terpisah.
+- **Jalur belum disebut:** semua pilihan yang bisa dihitung ditampilkan, lalu jalurnya ditanyakan.
+
+Hasilnya menjadi **draf balasan** dalam bahasa pelanggan: estimasi harga, lalu pertanyaan untuk info
+yang masih kurang. Contoh untuk "tas Nike 10 kg via udara ke Bandung":
+
+```
+Baik kak, estimasi ongkirnya:
+- Via udara (branded): 10 kg × Rp230.000 = Rp2.300.000
+Harga sudah all-in sampai Jakarta.
+Pengiriman dari Jakarta ke Bandung lewat ekspedisi lokal, biayanya terpisah ya kak.
+```
+
+Ini estimasi. Jika kategori atau branded masih tebakan, demo memberi tanda cek admin. Harga khusus
+(mis. diskon kiriman besar) tetap keputusan admin. Bagian ini belum dievaluasi dengan chat asli.
 
 ## Tahap 2: membaca foto pelanggan (percobaan kecil)
 
@@ -250,10 +280,10 @@ python -m evaluasi.bandingkan <folder_run_a> <folder_run_b>
 | `evaluasi/` | menjalankan evaluasi, metrik per kolom, membandingkan run |
 | `app/` | demo, halaman tandai, halaman label, halaman label foto |
 | `data/chats/` | chat sintetis berlabel |
-| `data/referensi/` | alias kota, frasa template admin, kategori tarif (tanpa harga), daftar kata kategori admin |
+| `data/referensi/` | alias kota, frasa template admin, kategori tarif, daftar kata kategori admin, pricelist (tarif.csv) |
 | `data/raw/`, `data/privat/` | chat asli dan turunannya, **tidak di-commit** |
 | `docs/` | panduan label |
-| `tests/` | 73 tes (tanpa memanggil model) |
+| `tests/` | 81 tes (tanpa memanggil model) |
 
 Riwayat keputusan lengkap disimpan di catatan kerja internal (`KONTEKS_PROYEK.md`, tidak
 dipublikasikan karena memuat detail chat asli).

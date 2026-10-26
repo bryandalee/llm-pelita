@@ -6,7 +6,8 @@ from .bersihkan import buang_template
 from .dataset import teks_chat
 from .extractor import ekstrak
 from .foto import lengkapi_jenis, sisipkan_foto
-from .pertanyaan import bahasa_balasan, buat_pertanyaan
+from .harga import estimasi_harga
+from .pertanyaan import bahasa_balasan, buat_balasan
 from .schemas import EkstraksiLLM, Pesan, Pesanan
 from .validator import normalisasi
 
@@ -26,4 +27,5 @@ def proses(
         raw = lengkapi_jenis(raw, bersih)
     # Bahasa balasan dihitung dari pesan pelanggan; tebakan model kurang andal untuk chat campuran.
     pesanan = normalisasi(raw).model_copy(update={"bahasa_pelanggan": bahasa_balasan(pesan)})
-    return pesanan.model_copy(update={"pertanyaan_balik": buat_pertanyaan(pesanan)}), raw
+    # Draf balasan: estimasi harga (dihitung kode dari tarif.csv) + pertanyaan info yang kurang.
+    return pesanan.model_copy(update={"pertanyaan_balik": buat_balasan(pesanan, estimasi_harga(pesanan))}), raw

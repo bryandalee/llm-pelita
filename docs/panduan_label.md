@@ -67,11 +67,16 @@ Alur: ekspor WhatsApp → `scripts/impor_whatsapp.py` (dipotong per episode dan 
 
 ## Info kurang
 
-Masukkan ke `info_kurang` jika tidak ada di chat:
+Info yang perlu ditanyakan supaya admin bisa memberi harga. Dihitung otomatis dari isian label
+(`validator.aturan_info_kurang`), mengikuti cara kerja admin Pelita (sejak 27 Okt 2026):
 
-- `jenis_barang`, `jumlah_koli`, `berat`, `kota_tujuan`, `jalur`
-- `dimensi_atau_cbm`: hanya jika dimensi **dan** CBM sama-sama tidak ada
-- `branded`: hanya jika jalur `udara` dan branded tidak disebut
+- `jenis_barang` dan `kota_tujuan` jika tidak disebut.
+- **Jumlah koli tidak pernah ditanyakan.** Ukuran atau berat total dianggap 1 koli, kecuali pelanggan
+  sendiri menyebut ukuran per box dan jumlah box.
+- Jalur `udara`: `berat` jika tidak ada, `branded` jika tidak disebut. Ukuran tidak wajib (hanya untuk cek
+  berat volume).
+- Jalur `laut`: `dimensi_atau_cbm` jika ukuran **dan** CBM sama-sama tidak ada.
+- Jalur belum disebut: `jalur`, ditambah `berat` dan `dimensi_atau_cbm` hanya jika keduanya belum ada.
 
 ## Tag (`meta.tag`)
 

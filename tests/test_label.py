@@ -94,4 +94,4 @@ def test_halaman_label(tmp_path, monkeypatch):
     at.text_input(key="berat_uji_ep01").set_value("").run(timeout=30)
     at.button(key="simpan_uji_ep01").click().run(timeout=30)
     lab = muat_label()["uji_ep01"].label
-    assert lab.berat_kg is None and "berat" in lab.info_kurang
+    assert lab.berat_kg is None and "berat" not in lab.info_kurang     # laut: cukup ukuran/CBM

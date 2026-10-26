@@ -1,0 +1,9 @@
+jalur,golongan,tarif,satuan
+laut,tas,6000000,cbm
+laut,umum,6500000,cbm
+laut,lartas_ringan,7000000,cbm
+laut,lartas_berat,7500000,cbm
+laut,semi_garmen,8000000,cbm
+laut,garmen,10300000,cbm
+udara,branded,230000,kg
+udara,non_branded,220000,kg

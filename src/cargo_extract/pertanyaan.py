@@ -1,13 +1,14 @@
-"""Pertanyaan balik dari template (id/zh/en), tanpa LLM, supaya bisa diuji.
+"""Draf balasan dari template (id/zh/en), tanpa LLM, supaya bisa diuji.
 
-Aturan bisnis dari admin Pelita:
-- satu ukuran tanpa jumlah koli -> konfirmasi "1 koli?" alih-alih menanyakan jumlah koli dari nol;
-- branded hanya ditanyakan untuk kiriman udara (sudah diatur di info_kurang).
+Isinya estimasi harga (harga.py) jika bisa dihitung, lalu pertanyaan untuk info yang kurang.
+Yang ditanyakan mengikuti aturan admin Pelita di validator.aturan_info_kurang (mis. jumlah koli
+tidak pernah ditanyakan; branded hanya untuk udara).
 """
 from __future__ import annotations
 
 import re
 
+from .harga import Estimasi, antar_gratis
 from .schemas import Bahasa, InfoKurang, Pesan, Pesanan
 
 POLA_CJK = re.compile(r"[一-鿿]")
@@ -34,51 +35,101 @@ def bahasa_balasan(pesan: list[Pesan]) -> Bahasa:
 TEKS = {
     Bahasa.ID: {
         "pembuka": "Baik kak, untuk menghitung ongkirnya boleh dibantu info berikut:",
-        "koli_satu": "ukuran {dimensi} cm itu untuk 1 koli ya kak?",
+        "pembuka_harga": "Baik kak, estimasi ongkirnya:",
+        "lanjut": "Untuk lanjut, boleh dibantu info berikut:",
+        "allin": "Harga sudah all-in sampai Jakarta.",
+        "lokal": "Pengiriman dari Jakarta ke {kota} lewat ekspedisi lokal, biayanya terpisah ya kak.",
+        "lokal_tanpa_kota": "Pengiriman dari Jakarta ke alamat kakak lewat ekspedisi lokal, biayanya terpisah ya kak.",
+        "gratis": "Sudah termasuk antar ke alamat di Jakarta.",
+        "laut": "Via laut", "udara": "Via udara",
         InfoKurang.JENIS_BARANG: "barangnya apa ya kak? (boleh kirim fotonya)",
-        InfoKurang.JUMLAH_KOLI: "ada berapa koli/dus?",
         InfoKurang.BERAT: "berat totalnya kira-kira berapa kg?",
-        InfoKurang.DIMENSI_ATAU_CBM: "ukuran per koli (p x l x t, cm) atau total CBM-nya?",
+        InfoKurang.DIMENSI_ATAU_CBM: "ukurannya (p x l x t, cm) atau total CBM-nya?",
         InfoKurang.KOTA_TUJUAN: "dikirim ke kota mana?",
         InfoKurang.JALUR: "mau dikirim via laut atau udara?",
         InfoKurang.BRANDED: "barangnya bermerek (branded) atau tidak?",
     },
     Bahasa.ZH: {
         "pembuka": "您好，为了计算运费，请提供以下信息：",
-        "koli_satu": "尺寸 {dimensi} cm 是一件吗？",
+        "pembuka_harga": "您好，运费估算如下：",
+        "lanjut": "另外请提供以下信息：",
+        "allin": "价格包含到雅加达的所有费用。",
+        "lokal": "从雅加达到{kota}由当地快递配送，运费另计。",
+        "lokal_tanpa_kota": "从雅加达到您地址由当地快递配送，运费另计。",
+        "gratis": "已包含雅加达市内送货。",
+        "laut": "海运", "udara": "空运",
         InfoKurang.JENIS_BARANG: "是什么货物？（也可以发照片）",
-        InfoKurang.JUMLAH_KOLI: "一共几件/几箱？",
         InfoKurang.BERAT: "总重量大约多少公斤？",
-        InfoKurang.DIMENSI_ATAU_CBM: "每件尺寸（长x宽x高，cm）或总方数？",
+        InfoKurang.DIMENSI_ATAU_CBM: "尺寸（长x宽x高，cm）或总方数？",
         InfoKurang.KOTA_TUJUAN: "寄到印尼哪个城市？",
         InfoKurang.JALUR: "走海运还是空运？",
         InfoKurang.BRANDED: "货物是品牌货吗？",
     },
     Bahasa.EN: {
         "pembuka": "Thank you! To calculate the shipping cost, could you share:",
-        "koli_satu": "is the {dimensi} cm size for 1 carton?",
+        "pembuka_harga": "Thank you! Estimated shipping cost:",
+        "lanjut": "To continue, could you share:",
+        "allin": "All-in price up to Jakarta.",
+        "lokal": "Delivery from Jakarta to {kota} goes through a local courier, charged separately.",
+        "lokal_tanpa_kota": "Delivery from Jakarta to your address goes through a local courier, charged separately.",
+        "gratis": "Includes delivery to your address in Jakarta.",
+        "laut": "Sea freight", "udara": "Air freight",
         InfoKurang.JENIS_BARANG: "what are the goods? (a photo is fine)",
-        InfoKurang.JUMLAH_KOLI: "how many cartons?",
         InfoKurang.BERAT: "the total weight in kg?",
-        InfoKurang.DIMENSI_ATAU_CBM: "the size per carton (L x W x H, cm) or the total CBM?",
+        InfoKurang.DIMENSI_ATAU_CBM: "the size (L x W x H, cm) or the total CBM?",
         InfoKurang.KOTA_TUJUAN: "the destination city in Indonesia?",
         InfoKurang.JALUR: "sea or air freight?",
         InfoKurang.BRANDED: "are the goods branded?",
     },
 }
+GOLONGAN = {
+    Bahasa.ID: {"tas": "tas", "umum": "umum", "lartas_ringan": "lartas ringan", "lartas_berat": "lartas berat",
+                "semi_garmen": "semi garmen", "garmen": "garmen", "branded": "branded", "non_branded": "non-branded"},
+    Bahasa.ZH: {"tas": "箱包", "umum": "普货", "lartas_ringan": "轻敏感货", "lartas_berat": "重敏感货",
+                "semi_garmen": "半成衣", "garmen": "成衣", "branded": "品牌货", "non_branded": "非品牌货"},
+    Bahasa.EN: {"tas": "bags", "umum": "general", "lartas_ringan": "restricted (light)",
+                "lartas_berat": "restricted (heavy)", "semi_garmen": "semi-garment", "garmen": "garment",
+                "branded": "branded", "non_branded": "non-branded"},
+}
+
+
+def rupiah(n: float) -> str:
+    return "Rp" + f"{round(n):,}".replace(",", ".")
+
+
+def _angka(x: float, bahasa: Bahasa) -> str:
+    teks = f"{x:g}"
+    return teks.replace(".", ",") if bahasa == Bahasa.ID else teks
+
+
+def _baris_harga(e: Estimasi, bahasa: Bahasa) -> str:
+    teks = TEKS[bahasa]
+    hitung = f"{_angka(e.jumlah, bahasa)} {e.satuan.upper() if e.satuan == 'cbm' else 'kg'} × {rupiah(e.tarif)}"
+    if e.selisih_volume_kg:
+        hitung += f" + {_angka(e.selisih_volume_kg, bahasa)} kg × {rupiah(e.tarif / 2)}"
+    return f"- {teks[e.jalur.value]} ({GOLONGAN[bahasa][e.golongan]}): {hitung} = {rupiah(e.total)}"
 
 
 def buat_pertanyaan(pesanan: Pesanan) -> str | None:
-    """None jika tidak ada yang kurang."""
+    """Hanya pertanyaan untuk info yang kurang; None jika tidak ada yang kurang."""
+    return buat_balasan(pesanan, [])
+
+
+def buat_balasan(pesanan: Pesanan, estimasi: list[Estimasi]) -> str | None:
+    """Draf balasan: estimasi harga (jika ada), lalu pertanyaan info yang kurang. None jika kosong."""
     teks = TEKS[pesanan.bahasa_pelanggan]
-    butir = []
-    for item in pesanan.info_kurang:
-        satu_ukuran = len(pesanan.grup_koli) == 1 and pesanan.grup_koli[0].dimensi_cm
-        if item == InfoKurang.JUMLAH_KOLI and satu_ukuran:
-            dimensi = "x".join(f"{s:g}" for s in pesanan.grup_koli[0].dimensi_cm)
-            butir.append(teks["koli_satu"].format(dimensi=dimensi))
+    bagian = []
+    if estimasi:
+        baris = [teks["pembuka_harga"], *(_baris_harga(e, pesanan.bahasa_pelanggan) for e in estimasi), teks["allin"]]
+        if all(antar_gratis(pesanan, e) for e in estimasi):
+            baris.append(teks["gratis"])
+        elif pesanan.kota_tujuan:
+            baris.append(teks["lokal"].format(kota=pesanan.kota_tujuan))
         else:
-            butir.append(teks[item])
-    if not butir:
-        return None
-    return teks["pembuka"] + "\n" + "\n".join(f"{i}. {b}" for i, b in enumerate(butir, start=1))
+            baris.append(teks["lokal_tanpa_kota"])
+        bagian.append("\n".join(baris))
+    butir = [teks[item] for item in pesanan.info_kurang if item in teks]
+    if butir:
+        pembuka = teks["lanjut"] if estimasi else teks["pembuka"]
+        bagian.append(pembuka + "\n" + "\n".join(f"{i}. {b}" for i, b in enumerate(butir, start=1)))
+    return "\n\n".join(bagian) or None

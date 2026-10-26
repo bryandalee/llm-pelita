@@ -113,6 +113,6 @@ def test_barang_di_luar_daftar_pakai_tebakan_model_dan_ditandai():
 def test_chat_kosong_semua_kurang():
     p = normalisasi(raw(jenis_barang=None))
     assert set(p.info_kurang) == {
-        InfoKurang.JENIS_BARANG, InfoKurang.JUMLAH_KOLI, InfoKurang.BERAT,
+        InfoKurang.JENIS_BARANG, InfoKurang.BERAT,
         InfoKurang.DIMENSI_ATAU_CBM, InfoKurang.KOTA_TUJUAN, InfoKurang.JALUR,
     }

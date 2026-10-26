@@ -10,8 +10,9 @@ import json
 from pathlib import Path
 
 from . import config
-from .schemas import ContohChat, InfoKurang, Jalur, LabelManual, LabelPesanan, MetaChat
+from .schemas import ContohChat, InfoKurang, LabelManual, LabelPesanan, MetaChat
 from .tanda import input_episode, muat_draft, muat_tanda
+from .validator import aturan_info_kurang
 
 # Sama dengan tabel tag di docs/panduan_label.md.
 TAGS = [
@@ -79,23 +80,9 @@ def simpan_label_foto(id_episode: str, jenis: str | None, path: Path | None = No
 
 
 def info_kurang_dari_label(lab: LabelPesanan) -> list[InfoKurang]:
-    """Aturan 'Info kurang' di docs/panduan_label.md, diterapkan ke isian label."""
-    kurang = []
-    if lab.jenis_barang is None:
-        kurang.append(InfoKurang.JENIS_BARANG)
-    if lab.jumlah_koli is None:
-        kurang.append(InfoKurang.JUMLAH_KOLI)
-    if lab.berat_kg is None:
-        kurang.append(InfoKurang.BERAT)
-    if not any(g.dimensi_cm for g in lab.grup_koli) and lab.cbm is None:
-        kurang.append(InfoKurang.DIMENSI_ATAU_CBM)
-    if lab.kota_tujuan is None:
-        kurang.append(InfoKurang.KOTA_TUJUAN)
-    if lab.jalur is None:
-        kurang.append(InfoKurang.JALUR)
-    elif lab.jalur == Jalur.UDARA and lab.branded is None:
-        kurang.append(InfoKurang.BRANDED)
-    return kurang
+    """Aturan 'Info kurang' (validator.aturan_info_kurang), diterapkan ke isian label."""
+    ada_ukuran = any(g.dimensi_cm for g in lab.grup_koli) or lab.cbm is not None
+    return aturan_info_kurang(lab.jenis_barang, lab.berat_kg, ada_ukuran, lab.kota_tujuan, lab.jalur, lab.branded)
 
 
 def bangun_dataset() -> tuple[dict[str, int], list[str]]:
@@ -116,7 +103,8 @@ def bangun_dataset() -> tuple[dict[str, int], list[str]]:
         contoh["dev" if id_ep in dev else "test"].append(ContohChat(
             id=id_ep,
             pesan=input_episode(drafts[id_ep], t),
-            label=lm.label,
+            # info_kurang dihitung ulang supaya selalu mengikuti aturan terbaru.
+            label=lm.label.model_copy(update={"info_kurang": info_kurang_dari_label(lm.label)}),
             meta=MetaChat(bahasa=lm.bahasa, sumber="disamarkan", tag=lm.tag),
         ))
     for split, daftar in contoh.items():

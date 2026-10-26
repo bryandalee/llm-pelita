@@ -42,7 +42,9 @@ from evaluasi.metrik import KOLOM, STATUS, bandingkan_kolom, kolom_diabaikan, ri
 
 def chat_asli(split: str) -> list:
     bagian = ["dev", "test"] if split == "asli" else [split.removeprefix("asli-")]
-    return [c for b in bagian for c in muat_chats(file_dataset(b))]
+    # info_kurang dihitung ulang dari label, supaya dataset lama tetap memakai aturan terbaru.
+    return [c.model_copy(update={"label": c.label.model_copy(update={"info_kurang": info_kurang_dari_label(c.label)})})
+            for b in bagian for c in muat_chats(file_dataset(b))]
 
 
 def chat_foto() -> list:

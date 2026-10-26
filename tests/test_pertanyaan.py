@@ -11,11 +11,11 @@ from cargo_extract.schemas import EkstraksiLLM, GrupKoli, InfoKurang, Pesanan
 DEV = Path(__file__).resolve().parents[1] / "data" / "chats" / "dev.jsonl"
 
 
-def test_satu_ukuran_tanpa_koli_jadi_konfirmasi():
+def test_hanya_pertanyaan_jika_belum_ada_harga():
     p = Pesanan(bahasa_pelanggan="id", grup_koli=[GrupKoli(dimensi_cm=(65, 45, 50))],
-                info_kurang=[InfoKurang.JUMLAH_KOLI, InfoKurang.KOTA_TUJUAN])
+                info_kurang=[InfoKurang.JALUR, InfoKurang.KOTA_TUJUAN])
     assert buat_pertanyaan(p) == ("Baik kak, untuk menghitung ongkirnya boleh dibantu info berikut:\n"
-                                  "1. ukuran 65x45x50 cm itu untuk 1 koli ya kak?\n"
+                                  "1. mau dikirim via laut atau udara?\n"
                                   "2. dikirim ke kota mana?")
 
 
@@ -58,7 +58,7 @@ def test_halaman_demo(monkeypatch):
     at.button[0].click().run(timeout=30)
     assert not at.exception
     teks_kode = " ".join(c.value for c in at.code)
-    assert "berat totalnya" in teks_kode and "via laut atau udara" in teks_kode
+    assert "estimasi ongkirnya" in teks_kode and "via laut atau udara" in teks_kode
 
     # Salinan mentah dari WhatsApp Desktop: admin ditebak dari pesan template, lalu dipisah otomatis.
     at.text_area(key="chat").set_value(
