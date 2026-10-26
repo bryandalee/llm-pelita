@@ -61,6 +61,23 @@ def simpan_label(id_episode: str, label: LabelManual, path: Path | None = None) 
     path.write_text(json.dumps(isi, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def file_label_foto(draft: bool = False) -> Path:
+    """Tahap 2: {id: jenis barang setelah melihat foto}. draft=True: usulan yang belum dicek pengguna."""
+    return config.PRIVAT_DIR / ("draft_label_foto.json" if draft else "label_foto.json")
+
+
+def muat_label_foto(path: Path | None = None) -> dict[str, str | None]:
+    path = path or file_label_foto()
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def simpan_label_foto(id_episode: str, jenis: str | None, path: Path | None = None) -> None:
+    path = path or file_label_foto()
+    semua = muat_label_foto(path) | {id_episode: jenis}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(dict(sorted(semua.items())), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def info_kurang_dari_label(lab: LabelPesanan) -> list[InfoKurang]:
     """Aturan 'Info kurang' di docs/panduan_label.md, diterapkan ke isian label."""
     kurang = []

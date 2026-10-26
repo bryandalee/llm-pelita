@@ -155,13 +155,47 @@ Cara membaca:
   label boleh memuat beberapa nama yang diterima (dipisah `|`). Aturan ini diterapkan sama ke semua
   versi; angka putaran 1 tidak berubah.
 
+## Tahap 2: membaca foto pelanggan (percobaan kecil)
+
+Pelanggan sering mengirim foto atau screenshot toko (Taobao/Alibaba/AliExpress) alih-alih menulis nama
+barang. `qwen3.5:9b` juga bisa membaca gambar, jadi foto dibaca lebih dulu menjadi nama barang singkat dan
+disisipkan ke chat sebagai `[foto: ...]` ([`foto.py`](src/cargo_extract/foto.py)). Model foto hanya diminta
+menyebut barang dan merek. Di uji awal, model menyalin ukuran produk dari halaman toko dan mengarang
+"1 unit", padahal itu bukan info kiriman. Gambar diperkecil dulu: di CPU laptop, ukuran asli butuh
+30–190 detik per foto.
+
+Diuji di 17 chat berlabel yang punya foto pelanggan sebelum titik potong (22 foto). Jenis barang dinilai
+dengan label "setelah melihat foto" (`app/label_foto.py`, dicek pengguna).
+
+| 17 chat dengan foto | Teks saja | + foto 768 px | + foto 1024 px |
+|---|---|---|---|
+| Jenis barang | 65% (11/17) | **82% (14/17)** | 76% (13/17) |
+| Kategori (tarif laut) | 50% (6/12) | **75% (9/12)** | **75% (9/12)** |
+| Info kurang | 35% | 71% | 65% |
+| Chat benar di semua kolom | 2/17 | 4/17 | 3/17 |
+| Foto terbaca benar (dinilai manual) | – | 17/22 | 20/22 |
+| Waktu baca per foto | – | 13–26 detik | 29–41 detik |
+
+Cara membaca:
+- **Foto paling berguna saat barang hanya ada di foto.** Contohnya phone farm, alat infus, dan baterai
+  Li-ion beserta tiang karbon. Baterai Li-ion ternyata barang yang tidak bisa dikirim, jadi foto juga
+  bisa memberi peringatan.
+- **Model ekstraksi sering mengabaikan `[foto: ...]`.** Di keempat chat yang barangnya hanya ada di foto,
+  foto terbaca benar tapi jenis barang tetap kosong. Karena itu kode mengisi jenis dari deskripsi foto
+  bila ekstraksi kosong. Aturan ini ditambahkan **setelah** melihat hasil pertama. Tanpa aturan ini,
+  jenis barang 71% (768 px) dan 65% (1024 px).
+- **1024 px membaca foto lebih akurat** (20/22 vs 17/22), tapi skor akhirnya tidak lebih tinggi. Selisihnya
+  datang dari cara label ditulis (mis. "teh hijau" tidak cocok dengan label "daun teh"). Bawaan: 1024 px.
+- **Ini percobaan kecil, bukan test independen.** Ke-17 chat campuran dev dan test, prompt foto
+  dirancang setelah melihat 4 foto, dan packing list hanya ada ±2 sehingga belum diukur.
+
 ## Keterbatasan
 
 - Test kecil: 23 chat (putaran 1, sudah dipakai beberapa kali) dan 33 chat (putaran 2, dipakai sekali
   untuk v7 vs v8). Kategori dinilai di 19 chat, jadi satu chat = ±5%.
 - Semua chat asli berbahasa **Indonesia**. Kemampuan Mandarin/Inggris baru diuji dengan data
   sintetis.
-- Tahap 1 hanya teks. Info yang hanya ada di foto (jenis barang, packing list) belum dibaca.
+- Foto baru diuji di 17 chat. Packing list (±2) belum diukur, dan demo belum menerima unggahan foto.
 - Kategori untuk barang di luar daftar admin masih tebakan model; karena itu selalu ditandai untuk dicek.
 
 ## Menjalankan
@@ -186,7 +220,9 @@ Alur chat asli (semua hasilnya di `data/privat/`, tidak di-commit):
 python scripts/impor_whatsapp.py data/raw/<folder>/chat.txt --nama <nama admin>
 streamlit run app/tandai.py      # jenis episode + titik potong
 streamlit run app/label.py       # label (isian awal dikoreksi admin)
+streamlit run app/label_foto.py  # tahap 2: jenis barang setelah melihat foto
 python -m evaluasi.jalankan --split asli-test
+python -m evaluasi.jalankan --split foto --foto   # teks + foto
 python -m evaluasi.bandingkan <folder_run_a> <folder_run_b>
 ```
 
@@ -194,15 +230,15 @@ python -m evaluasi.bandingkan <folder_run_a> <folder_run_b>
 
 | Folder | Isi |
 |---|---|
-| `src/cargo_extract/` | skema, pembaca WhatsApp, penyamar, buang template, extractor, validator, pertanyaan balik, pipeline |
+| `src/cargo_extract/` | skema, pembaca WhatsApp, penyamar, buang template, extractor, pembaca foto, validator, pertanyaan balik, pipeline |
 | `prompts/` | versi prompt v1–v8 (baku: v8) |
 | `evaluasi/` | menjalankan evaluasi, metrik per kolom, membandingkan run |
-| `app/` | demo, halaman tandai, halaman label |
+| `app/` | demo, halaman tandai, halaman label, halaman label foto |
 | `data/chats/` | chat sintetis berlabel |
 | `data/referensi/` | alias kota, frasa template admin, kategori tarif (tanpa harga), daftar kata kategori admin |
 | `data/raw/`, `data/privat/` | chat asli dan turunannya, **tidak di-commit** |
 | `docs/` | panduan label |
-| `tests/` | 69 tes (tanpa memanggil model) |
+| `tests/` | 73 tes (tanpa memanggil model) |
 
 Riwayat keputusan lengkap disimpan di catatan kerja internal (`KONTEKS_PROYEK.md`, tidak
 dipublikasikan karena memuat detail chat asli).
